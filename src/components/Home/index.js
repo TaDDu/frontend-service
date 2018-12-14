@@ -1,17 +1,28 @@
 import React, { Component } from "react";
 import { Link, Redirect } from "react-router-dom";
 import userService from "../User/userService";
+import ipLocationService from "../ip-location/service.js";
+
 class Home extends Component {
   constructor(props) {
     console.log("HOME");
     super(props);
     this.state = {
-      user: {}
+      user: {},
+      location: {
+        city: "loading"
+      }
     };
     var apikey = sessionStorage.getItem("apikey");
     this.userService = new userService(window.location.origin + "/api/users/", {
       authorization: "Bearer " + apikey
     });
+    this.ipLocationService = new ipLocationService(
+      window.location.origin + "/api/ip-location",
+      {
+        authorization: "Bearer " + apikey
+      }
+    );
   }
 
   componentWillMount() {}
@@ -23,6 +34,12 @@ class Home extends Component {
   componentDidMount() {
     this.userService.me().then(s => {
       this.setState({ user: s });
+      this.ipLocationService.me().then(location => {
+        if (location.city == null) {
+          location.city = "No location";
+        }
+        this.setState({ location: location });
+      });
     });
   }
 
@@ -44,7 +61,9 @@ class Home extends Component {
           </div>
           <div className="p-2 flex-grow-1">
             <div className="card card-default h-100">
-              <div className="card-header">Temperature @ Location</div>
+              <div className="card-header">
+                Temperature @ {this.state.location.city}
+              </div>
               <div className="card-body text-center">
                 <h1>0 </h1>
               </div>
