@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { Link, Redirect } from "react-router-dom";
 import userService from "../User/userService";
-import ipLocationService from "../ip-location/service.js";
+import ipLocationService from "../iplocation/service.js";
 
 class Home extends Component {
   constructor(props) {
