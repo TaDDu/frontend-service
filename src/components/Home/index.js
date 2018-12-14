@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { Link, Redirect } from "react-router-dom";
 import userService from "../User/userService";
 import ipLocationService from "../iplocation/service.js";
-
+import weatherService from "../Weather/service.js";
 class Home extends Component {
   constructor(props) {
     console.log("HOME");
@@ -11,6 +11,13 @@ class Home extends Component {
       user: {},
       location: {
         city: "loading"
+      },
+      weather: {
+        main: {
+          temp: "loading",
+          pressure: "loading",
+          humidity: "loading"
+        }
       }
     };
     var apikey = sessionStorage.getItem("apikey");
@@ -19,6 +26,12 @@ class Home extends Component {
     });
     this.ipLocationService = new ipLocationService(
       window.location.origin + "/api/ip-location",
+      {
+        authorization: "Bearer " + apikey
+      }
+    );
+    this.weatherService = new weatherService(
+      window.location.origin + "/api/weather",
       {
         authorization: "Bearer " + apikey
       }
@@ -37,6 +50,10 @@ class Home extends Component {
       this.ipLocationService.me().then(location => {
         if (location.city == null) {
           location.city = "No location";
+        } else {
+          this.weatherService.city(location.city).then(weather => {
+            this.setState({ weather: weather });
+          });
         }
         this.setState({ location: location });
       });
@@ -65,7 +82,9 @@ class Home extends Component {
                 Temperature @ {this.state.location.city}
               </div>
               <div className="card-body text-center">
-                <h1>0 </h1>
+                <h1>{this.state.weather.main.temp}</h1>
+                <p>Pressure: {this.state.weather.main.pressure}</p>
+                <p>Humidity: {this.state.weather.main.humidity}</p>
               </div>
             </div>
           </div>
