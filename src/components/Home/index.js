@@ -3,6 +3,8 @@ import { Link, Redirect } from "react-router-dom";
 import userService from "../User/userService";
 import ipLocationService from "../iplocation/service.js";
 import weatherService from "../Weather/service.js";
+import taskService from "../Task/taskService.js";
+import TaskForm from "../Task/form.js";
 class Home extends Component {
   constructor(props) {
     console.log("HOME");
@@ -18,7 +20,8 @@ class Home extends Component {
           pressure: "loading",
           humidity: "loading"
         }
-      }
+      },
+      tasks: []
     };
     var apikey = sessionStorage.getItem("apikey");
     this.userService = new userService(window.location.origin + "/api/users/", {
@@ -36,6 +39,17 @@ class Home extends Component {
         authorization: "Bearer " + apikey
       }
     );
+    this.taskService = new taskService(window.location.origin + "/api/tasks", {
+      authorization: "Bearer " + apikey
+    });
+    this.callBack = this.callBack.bind(this);
+  }
+
+  callBack(data) {
+    console.log("callBack", data);
+    var tasks = this.state.tasks;
+    tasks.unshift(data);
+    this.setState({ tasks: tasks });
   }
 
   componentWillMount() {}
@@ -57,10 +71,29 @@ class Home extends Component {
         }
         this.setState({ location: location });
       });
+      this.taskService.all().then(tasks => {
+        this.setState({ tasks: tasks });
+      });
     });
   }
 
   render() {
+    var TaskList = () => {
+      if (this.state.tasks.length > 0) {
+        return this.state.tasks.map(task => {
+          return (
+            <li className="list-group-item list-group-item-dark" key={task.id}>
+              {task.title}
+            </li>
+          );
+        });
+      } else {
+        return (
+          <li className="list-group-item list-group-item-dark">No tasks</li>
+        );
+      }
+    };
+
     return (
       <div>
         <div className="d-flex flex-wrap">
@@ -85,6 +118,19 @@ class Home extends Component {
                 <h1>{this.state.weather.main.temp}</h1>
                 <p>Pressure: {this.state.weather.main.pressure}</p>
                 <p>Humidity: {this.state.weather.main.humidity}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="d-flex flex-wrap">
+          <div className="p-2 flex-fill">
+            <div className="card card-default">
+              <div className="card-header">Tasks {this.state.tasks.length}</div>
+              <div className="card-body">
+                <TaskForm callback={this.callBack} />
+                <ul className="list-group">
+                  <TaskList />
+                </ul>
               </div>
             </div>
           </div>
