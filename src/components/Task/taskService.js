@@ -38,4 +38,38 @@ export default class taskService {
         });
     });
   }
+  done(id) {
+    var url = this._url;
+    var header = this._header;
+    return new Promise(function(resolve, reject) {
+      fetch(url + "/" + id, {
+        method: "put",
+        headers: header,
+        body: JSON.stringify({ closed: true })
+      })
+        .then(function(response) {
+          return response.json();
+        })
+        .then(function(body) {
+          resolve(body);
+        });
+    });
+  }
+
+  delete(id) {
+    var url = this._url;
+    var header = this._header;
+    return new Promise(function(resolve, reject) {
+      fetch(url + "/" + id, {
+        method: "delete",
+        headers: header
+      })
+        .then(function(response) {
+          return response.json();
+        })
+        .then(function(body) {
+          resolve(body);
+        });
+    });
+  }
 }

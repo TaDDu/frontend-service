@@ -21,6 +21,8 @@ class Home extends Component {
           humidity: "loading"
         }
       },
+      show_closed: false,
+      show_open: true,
       tasks: []
     };
     var apikey = sessionStorage.getItem("apikey");
@@ -43,6 +45,10 @@ class Home extends Component {
       authorization: "Bearer " + apikey
     });
     this.callBack = this.callBack.bind(this);
+    this.taskDone = this.taskDone.bind(this);
+    this.taskDelete = this.taskDelete.bind(this);
+    this.toggleClosed = this.toggleClosed.bind(this);
+    this.toggleOpen = this.toggleOpen.bind(this);
   }
 
   callBack(data) {
@@ -50,6 +56,42 @@ class Home extends Component {
     var tasks = this.state.tasks;
     tasks.unshift(data);
     this.setState({ tasks: tasks });
+  }
+
+  toggleClosed() {
+    if (this.state.show_closed) {
+      this.setState({ show_closed: false });
+    } else {
+      this.setState({ show_closed: true });
+    }
+  }
+
+  toggleOpen() {
+    if (this.state.show_open) {
+      this.setState({ show_open: false });
+    } else {
+      this.setState({ show_open: true });
+    }
+  }
+
+  taskDone(id) {
+    this.taskService.done(id).then(res => {
+      var tasks = this.state.tasks;
+      tasks.map(task => {
+        if (task.id == id) {
+          task.closed = true;
+        }
+      });
+      this.setState({ tasks: tasks });
+    });
+  }
+
+  taskDelete(id) {
+    this.taskService.delete(id).then(res => {
+      var tasks = this.state.tasks;
+      tasks = tasks.filter(task => task.id != id);
+      this.setState({ tasks: tasks });
+    });
   }
 
   componentWillMount() {}
@@ -80,17 +122,130 @@ class Home extends Component {
   render() {
     var TaskList = () => {
       if (this.state.tasks.length > 0) {
-        return this.state.tasks.map(task => {
+        var tasks = this.state.tasks.filter(task => {
+          if (this.state.show_closed && task.closed == true) {
+            return task;
+          }
+          if (this.state.show_open && task.closed == false) {
+            return task;
+          }
+        });
+
+        return tasks.map(task => {
+          if (task.closed == true) {
+            var title = <del>{task.title}</del>;
+          } else {
+            var title = task.title;
+          }
           return (
-            <li className="list-group-item list-group-item-dark" key={task.id}>
-              {task.title}
-            </li>
+            <div
+              key={task.id}
+              className="card card-default"
+              style={{ border: 0 }}
+            >
+              <div
+                className="card-header"
+                style={{
+                  paddingTop: 0,
+                  paddingBottom: 0,
+                  fontWeight: "initial"
+                }}
+              >
+                <div className="d-flex align-content-center align-items-center">
+                  <div className="p-2">{title}</div>
+                  <div className="ml-auto p-2">
+                    <div className="btn-group btn-group-sm">
+                      {task.closed ? (
+                        <button
+                          type="button"
+                          className="btn btn-primary disabled"
+                          style={{
+                            backgroundColor: "#2980b9",
+                            borderColor: "#2980b9"
+                          }}
+                        >
+                          <i className="fas fa-check" />
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="btn btn-primary"
+                          style={{
+                            backgroundColor: "#2980b9",
+                            borderColor: "#2980b9"
+                          }}
+                          onClick={() => {
+                            this.taskDone(task.id);
+                          }}
+                        >
+                          <i className="far fa-square" />
+                        </button>
+                      )}
+
+                      {!task.closed ? (
+                        <button
+                          type="button"
+                          className="btn btn-info"
+                          style={{
+                            backgroundColor: "#16a085",
+                            borderColor: "#16a085"
+                          }}
+                        >
+                          <i className="far fa-edit" />
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="btn btn-info disabled"
+                          style={{
+                            backgroundColor: "#16a085",
+                            borderColor: "#16a085"
+                          }}
+                        >
+                          <i className="far fa-edit" />
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        className="btn btn-danger"
+                        style={{
+                          backgroundColor: "#c0392b",
+                          borderColor: "#c0392b"
+                        }}
+                        onClick={() => {
+                          this.taskDelete(task.id);
+                        }}
+                      >
+                        <i className="fas fa-trash" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           );
         });
       } else {
-        return (
-          <li className="list-group-item list-group-item-dark">No tasks</li>
-        );
+        return <h2>No tasks</h2>;
+      }
+    };
+
+    var ClosedCount = () => {
+      if (this.state.tasks.length > 0) {
+        var tasks = this.state.tasks.filter(task => task.closed == true);
+        return tasks.length;
+      } else {
+        return "0";
+      }
+    };
+
+    var OpenCount = () => {
+      if (this.state.tasks.length > 0) {
+        var tasks = this.state.tasks.filter(task => task.closed == false);
+        return tasks.length;
+      } else {
+        return "0";
       }
     };
 
@@ -125,12 +280,42 @@ class Home extends Component {
         <div className="d-flex flex-wrap">
           <div className="p-2 flex-fill">
             <div className="card card-default">
-              <div className="card-header">Tasks {this.state.tasks.length}</div>
+              <div className="card-header">
+                <div className="d-flex align-content-center align-items-center">
+                  <div className="p-2">Tasks {this.state.tasks.length}</div>
+                  <div className="ml-auto p-2">
+                    <div className="btn-group btn-group-sm">
+                      <button
+                        className="btn btn-primary"
+                        onClick={this.toggleOpen}
+                      >
+                        open:
+                        <OpenCount />
+                      </button>
+                      <button
+                        className="btn btn-primary"
+                        onClick={this.toggleClosed}
+                      >
+                        closed:
+                        <ClosedCount />
+                      </button>
+                      <button
+                        className="btn btn-info"
+                        data-toggle="collapse"
+                        data-target="#demo"
+                      >
+                        Add new
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div className="card-body">
-                <TaskForm callback={this.callBack} />
-                <ul className="list-group">
-                  <TaskList />
-                </ul>
+                <div id="demo" className="collapse">
+                  <TaskForm callback={this.callBack} />
+                  <hr />
+                </div>
+                <TaskList />
               </div>
             </div>
           </div>

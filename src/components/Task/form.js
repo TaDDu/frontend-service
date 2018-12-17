@@ -31,7 +31,7 @@ class TaskForm extends Component {
       .create({ title: this.state.title, description: this.state.description })
       .then(success => {
         this.props.callback(success);
-        this.setState({ created: true });
+        this.setState({ created: true, title: "", description: "" });
       });
   }
 
@@ -56,7 +56,7 @@ class TaskForm extends Component {
               value={this.state.title}
               onChange={this.handleChange}
               required
-              autoFocus
+              autofocus="true"
             />
             <label htmlFor="title">Task title</label>
           </div>
