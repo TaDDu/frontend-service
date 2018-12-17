@@ -151,7 +151,7 @@ class Home extends Component {
                   fontWeight: "initial"
                 }}
               >
-                <div className="d-flex align-content-center align-items-center">
+                <div className="d-flex flex-wrap align-content-center align-items-center">
                   <div className="p-2">{title}</div>
                   <div className="ml-auto p-2">
                     <div className="btn-group btn-group-sm">
@@ -256,7 +256,9 @@ class Home extends Component {
             <div className="card card-default">
               <div className="card-header">Profile</div>
               <div className="card-body">
-                <h4 className="card-title">{this.state.user.email}</h4>
+                <h4 className="card-title" style={{ wordBreak: "break-word" }}>
+                  {this.state.user.email}
+                </h4>
                 <p>
                   Welcome: {this.state.user.firstName}{" "}
                   {this.state.user.lastName}
@@ -281,7 +283,7 @@ class Home extends Component {
           <div className="p-2 flex-fill">
             <div className="card card-default">
               <div className="card-header">
-                <div className="d-flex align-content-center align-items-center">
+                <div className="d-flex flex-wrap align-content-center align-items-center">
                   <div className="p-2">Tasks {this.state.tasks.length}</div>
                   <div className="ml-auto p-2">
                     <div className="btn-group btn-group-sm">
