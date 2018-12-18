@@ -113,6 +113,9 @@ class Login extends Component {
           <div className="col-sm-9 col-md-7 col-lg-5 mx-auto">
             <div className="card card-signin my-5">
               <div className="card-body">
+                <div className="alert alert-warning">
+                  Only Sign in with Goole is currently in use
+                </div>
                 <h5 className="card-title text-center">Sign In</h5>
                 <form className="form-signin" onSubmit={this.logIn}>
                   <div className="form-label-group">
@@ -156,7 +159,7 @@ class Login extends Component {
                     </label>
                   </div>
                   <button
-                    className="btn btn-lg btn-primary btn-block text-uppercase"
+                    className="btn btn-lg btn-primary btn-block text-uppercase disabled"
                     type="submit"
                   >
                     Sign in
@@ -164,16 +167,19 @@ class Login extends Component {
                   <hr className="my-4" />
                   <Link
                     to="/register"
-                    className="btn btn-lg btn-primary btn-block text-uppercase"
+                    className="btn btn-lg btn-primary btn-block text-uppercase disabled"
                   >
                     Register
                   </Link>
-                  <GoogleLogin
-                    clientId="975467020281-d513ujk0t5s6qgavpqsevmuf6l0qjpbp.apps.googleusercontent.com"
-                    buttonText="Sign in with Google"
-                    onSuccess={this.responseGoogle}
-                    onFailure={this.responseGoogle}
-                  />
+                  <hr className="my-4" />
+                  <div className="text-center">
+                    <GoogleLogin
+                      clientId="975467020281-d513ujk0t5s6qgavpqsevmuf6l0qjpbp.apps.googleusercontent.com"
+                      buttonText="Sign in with Google"
+                      onSuccess={this.responseGoogle}
+                      onFailure={this.responseGoogle}
+                    />
+                  </div>
                 </form>
               </div>
             </div>
