@@ -2,7 +2,10 @@ import React, { Component } from "react";
 import { Link, Redirect } from "react-router-dom";
 import userService from "../User/userService";
 import ipLocationService from "../iplocation/service.js";
+import geoService from "../Geocoding/service.js";
+
 import weatherService from "../Weather/service.js";
+
 import taskService from "../Task/taskService.js";
 import TaskForm from "../Task/form.js";
 class Home extends Component {
@@ -14,6 +17,7 @@ class Home extends Component {
       location: {
         city: "loading"
       },
+      by: "",
       weather: {
         main: {
           temp: "loading",
@@ -44,11 +48,20 @@ class Home extends Component {
     this.taskService = new taskService(window.location.origin + "/api/tasks", {
       authorization: "Bearer " + apikey
     });
+    this.geoService = new geoService(
+      window.location.origin + "/api/geocoding",
+      {
+        authorization: "Bearer " + apikey
+      }
+    );
     this.callBack = this.callBack.bind(this);
     this.taskDone = this.taskDone.bind(this);
     this.taskDelete = this.taskDelete.bind(this);
     this.toggleClosed = this.toggleClosed.bind(this);
     this.toggleOpen = this.toggleOpen.bind(this);
+
+    this.getIPlocation = this.getIPlocation.bind(this);
+    this.getGeocoding = this.getGeocoding.bind(this);
   }
 
   callBack(data) {
@@ -103,19 +116,69 @@ class Home extends Component {
   componentDidMount() {
     this.userService.me().then(s => {
       this.setState({ user: s });
-      this.ipLocationService.me().then(location => {
+      this.taskService.all().then(tasks => {
+        this.setState({ tasks: tasks });
+      });
+    });
+    if ("geolocation" in navigator) {
+      /* geolocation is available */
+      console.log("NAVIGATOR IS available");
+      navigator.geolocation.getCurrentPosition(
+        this.getGeocoding,
+        this.getIPlocation
+      );
+    } else {
+      /* geolocation IS NOT available */
+      console.log("NAVIGATOR IS NOT available");
+    }
+  }
+
+  getGeocoding(position) {
+    console.log(position);
+    this.geoService
+      .reverseLocation({
+        lat: position.coords.latitude,
+        long: position.coords.longitude
+      })
+      .then(location => {
+        console.log(location);
         if (location.city == null) {
           location.city = "No location";
+          var weather = {
+            main: {
+              temp: "-",
+              pressure: "-",
+              humidity: "-"
+            }
+          };
+          this.setState({ weather: weather });
         } else {
           this.weatherService.city(location.city).then(weather => {
             this.setState({ weather: weather });
           });
         }
-        this.setState({ location: location });
+        this.setState({ location: location, by: "gps" });
       });
-      this.taskService.all().then(tasks => {
-        this.setState({ tasks: tasks });
-      });
+  }
+
+  getIPlocation() {
+    this.ipLocationService.me().then(location => {
+      if (location.city == null) {
+        location.city = "No location";
+        var weather = {
+          main: {
+            temp: "-",
+            pressure: "-",
+            humidity: "-"
+          }
+        };
+        this.setState({ weather: weather });
+      } else {
+        this.weatherService.city(location.city).then(weather => {
+          this.setState({ weather: weather });
+        });
+      }
+      this.setState({ location: location, by: "ip" });
     });
   }
 
@@ -269,7 +332,7 @@ class Home extends Component {
           <div className="p-2 flex-grow-1">
             <div className="card card-default h-100">
               <div className="card-header">
-                Temperature @ {this.state.location.city}
+                Temperature @ {this.state.location.city} via {this.state.by}
               </div>
               <div className="card-body text-center">
                 <h1>{this.state.weather.main.temp}</h1>
